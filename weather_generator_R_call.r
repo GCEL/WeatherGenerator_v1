@@ -136,23 +136,23 @@ rh_to_vpd<-function(rh_in,air_temperature) {
 ## for the purpose downscaling daily meteorological drivers to hourly
 ###
 
-setwd("/home/lsmallma/WORK/R/Scripts/weather_generator")
+setwd("<set working directory>")
 
 library(ncdf4)
-duke = nc_open("/home/lsmallma/WORK/GREENHOUSE/observations/site_level/US-Dk3/AMF_USDk3_2005_L2_WG_V003.nc")
-names(duke$var)
+inputs = nc_open("example_hourly_meteorology.nc")
+names(inputs$var)
 
 # read raw
-time = ncvar_get(duke, "HRMIN")
-time = ncvar_get(duke, "DOY")
-airt = ncvar_get(duke, "TA")
+time = ncvar_get(inputs, "HRMIN")
+time = ncvar_get(inputs, "DOY")
+airt = ncvar_get(inputs, "TA")
 #lat = ncvar_get(duke, "Latitude")
-swrad = ncvar_get(duke, "Rg") # W.m-2
-windsp = ncvar_get(duke, "WS") # m.s-1
-precip = ncvar_get(duke, "PREC") # mm.t-1
-vpd = ncvar_get(duke, "VPD") # kPa
-rh = ncvar_get(duke, "RH") # hPa
-#pressure = ncvar_get(duke, "Pressure") # kPa
+swrad = ncvar_get(inputs, "Rg") # W.m-2
+windsp = ncvar_get(inputs, "WS") # m.s-1
+precip = ncvar_get(inputs, "PREC") # mm.t-1
+vpd = ncvar_get(inputs, "VPD") # kPa
+rh = ncvar_get(inputs, "RH") # hPa
+#pressure = ncvar_get(inputs, "Pressure") # kPa
 
 par(mfrow=c(3,4))
 plot(as.vector(airt))
@@ -225,13 +225,13 @@ system('R CMD SHLIB -o weather_generator.so weather_generator.f90 wg_interface.f
 dyn.load("weather_generator.so")
 # call function
 tmp=.Fortran("weathergeneratorinterface",latitude=as.single(latitude),nos_days=as.integer(length(time)),days_in_yr=as.single(days_in_yr)
-					,time=as.integer(time)
-					,sat_avg_in=as.single(sat_avg_in),sat_max_in=as.single(sat_max_in),sat_min_in=as.single(sat_min_in)
-					,ppt_in=as.single(ppt_in),swrad_in=as.single(swrad_in),coa_in=as.single(coa_in)
-					,rh_avg_in=as.single(rh_avg_in),rh_max_in=as.single(rh_max_in),rh_min_in=as.single(rh_min_in),wind_in=as.single(wind_in)
-          ,sat_out=as.single(array(0,dim=c(length(sat_avg_in)*24))),ppt_out=as.single(array(0,dim=c(length(sat_avg_in)*24)))
-					,swrad_out=as.single(array(0,dim=c(length(sat_avg_in)*24))),coa_out=as.single(array(0,dim=c(length(sat_avg_in)*24)))
-					,rh_out=as.single(array(0,dim=c(length(sat_avg_in)*24))),wind_out=as.single(array(0,dim=c(length(sat_avg_in)*24))) )
+                                        ,time=as.integer(time)
+                                        ,sat_avg_in=as.single(sat_avg_in),sat_max_in=as.single(sat_max_in),sat_min_in=as.single(sat_min_in)
+                                        ,ppt_in=as.single(ppt_in),swrad_in=as.single(swrad_in),coa_in=as.single(coa_in)
+                                        ,rh_avg_in=as.single(rh_avg_in),rh_max_in=as.single(rh_max_in),rh_min_in=as.single(rh_min_in),wind_in=as.single(wind_in)
+                                        ,sat_out=as.single(array(0,dim=c(length(sat_avg_in)*24))),ppt_out=as.single(array(0,dim=c(length(sat_avg_in)*24)))
+                                        ,swrad_out=as.single(array(0,dim=c(length(sat_avg_in)*24))),coa_out=as.single(array(0,dim=c(length(sat_avg_in)*24)))
+                                        ,rh_out=as.single(array(0,dim=c(length(sat_avg_in)*24))),wind_out=as.single(array(0,dim=c(length(sat_avg_in)*24))) )
 
 # extract wanted output
 sat_out=tmp$sat_out ; ppt_out=tmp$ppt_out
